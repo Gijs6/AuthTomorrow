@@ -7,18 +7,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 
-# Constants
+# Constant
 CLIENT_ID = 'D50E0C06-32D1-4B41-A137-A9A850C892C2'
 
-# Step 1: Fetching school data
+# Fetching school data
 response = requests.get('https://servers.somtoday.nl/organisaties.json')
 data = response.json()
 school_list = data[0]['instellingen']
 
-# Step 2: Searching for the school
+# Searching for the school
 school_input = input("Search for your school: ")
 
-# Find matching schools
+# Matching schools
 school_names = [school["naam"] for school in school_list]
 matches = difflib.get_close_matches(school_input, school_names, n=5, cutoff=0.3)
 
@@ -38,11 +38,10 @@ if matches:
 else:
     raise ValueError("No schools found")
 
-# Step 3: User authentication
+# User input
 username = input("Username: ")
 password = input("Password: ")  # getpass didn't work for some reason
 
-# OAuth2 base URL
 base_url = (
     "https://somtoday.nl/oauth2/authorize?"
     "redirect_uri=somtodayleerling://oauth/callback"
@@ -55,7 +54,7 @@ base_url = (
     f"&tenant_uuid={selected_school['uuid']}"
 )
 
-# Step 4: Set up the browser for login
+# Browser setup
 print("Getting browser ready...")
 options = Options()
 options.add_argument('--headless')
@@ -66,7 +65,7 @@ browser = webdriver.Chrome(options=options)
 
 browser.get(base_url)
 
-# Step 5: Automating login
+# Logging in
 print("Entering username and password...")
 username_field = browser.find_element(By.ID, "usernameField")
 username_field.send_keys(username)
@@ -76,12 +75,12 @@ password_field = browser.find_element(By.ID, "passwordField")
 password_field.send_keys(password)
 password_field.send_keys(Keys.RETURN)
 
-# Workaround for a bug that requires entering password twice
+# Bug that requires entering password twice
 password_field = browser.find_element(By.ID, "passwordField")
 password_field.send_keys(password)
 password_field.send_keys(Keys.RETURN)
 
-# Step 6: Fetching authentication token
+# Fetching auth
 print("Receiving auth data...")
 start_time = time.time()
 
@@ -91,7 +90,7 @@ while True:
         print("Timeout: No response after 20 seconds")
         break
 
-    # Check console logs for the authorization code
+    # Check logs for the auth code
     console_logs = browser.get_log('browser')
 
     for log_entry in console_logs:
@@ -99,7 +98,7 @@ while True:
             url = log_entry['message'].split("'")[1]
             code = parse_qs(urlparse(url).query)['code'][0]
 
-            # Step 7: Exchange the authorization code for tokens
+            # Get tokens
             payload = {
                 'grant_type': 'authorization_code',
                 'redirect_uri': 'somtodayleerling://oauth/callback',
