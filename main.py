@@ -7,38 +7,29 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 
-# Constant
 CLIENT_ID = 'D50E0C06-32D1-4B41-A137-A9A850C892C2'
-
-# Fetching school data
 response = requests.get('https://servers.somtoday.nl/organisaties.json')
 data = response.json()
 school_list = data[0]['instellingen']
-
-# Searching for the school
-school_input = input("Search for your school: ")
-
-# Matching schools
 school_names = [school["naam"] for school in school_list]
+
+school_input = input("Search for your school name: ")
 matches = difflib.get_close_matches(school_input, school_names, n=5, cutoff=0.3)
 
 if matches:
     print("Search results:")
     for i, match in enumerate(matches):
         print(f"{i + 1}. {match}")
-
-    # Select a school
     choice = input("Enter the number of your school on the list: ")
     if choice.isdigit() and 1 <= int(choice) <= len(matches):
         selected_name = matches[int(choice) - 1]
         selected_school = next(school for school in school_list if school["naam"] == selected_name)
-        print(f"\nYou have chosen '{selected_name}' with UUID {selected_school['uuid']}")
+        print(f"\nYou have chosen '{selected_name}' (UUID: {selected_school['uuid']})")
     else:
         raise ValueError("Invalid choice")
 else:
     raise ValueError("No schools found")
 
-# User input
 username = input("Username: ")
 password = input("Password: ")  # getpass didn't work for some reason
 
@@ -54,15 +45,14 @@ base_url = (
     f"&tenant_uuid={selected_school['uuid']}"
 )
 
-# Browser setup
 print("Getting browser ready...")
+
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 browser = webdriver.Chrome(options=options)
-
 browser.get(base_url)
 
 # Logging in
@@ -71,16 +61,15 @@ username_field = browser.find_element(By.ID, "usernameField")
 username_field.send_keys(username)
 username_field.send_keys(Keys.RETURN)
 
-password_field = browser.find_element(By.ID, "passwordField")
+password_field = browser.find_element(By.ID, "password-field")
 password_field.send_keys(password)
 password_field.send_keys(Keys.RETURN)
 
 # Bug that requires entering password twice
-password_field = browser.find_element(By.ID, "passwordField")
+password_field = browser.find_element(By.ID, "password-field")
 password_field.send_keys(password)
 password_field.send_keys(Keys.RETURN)
 
-# Fetching auth
 print("Receiving auth data...")
 start_time = time.time()
 
@@ -90,7 +79,7 @@ while True:
         print("Timeout: No response after 20 seconds")
         break
 
-    # Check logs for the auth code
+    # Check logs for the auth
     console_logs = browser.get_log('browser')
 
     for log_entry in console_logs:
@@ -98,7 +87,6 @@ while True:
             url = log_entry['message'].split("'")[1]
             code = parse_qs(urlparse(url).query)['code'][0]
 
-            # Get tokens
             payload = {
                 'grant_type': 'authorization_code',
                 'redirect_uri': 'somtodayleerling://oauth/callback',
