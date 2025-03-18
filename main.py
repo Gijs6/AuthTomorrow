@@ -7,7 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 
-CLIENT_ID = 'D50E0C06-32D1-4B41-A137-A9A850C892C2'
+CLIENT_ID = 'somtoday-leerling-native'
+REDIRECT_URI = "somtoday://nl.topicus.somtoday.leerling/oauth/callback"
 response = requests.get('https://servers.somtoday.nl/organisaties.json')
 data = response.json()
 school_list = data[0]['instellingen']
@@ -35,8 +36,8 @@ password = input("Password: ")  # getpass didn't work for some reason
 
 base_url = (
     "https://somtoday.nl/oauth2/authorize?"
-    "redirect_uri=somtodayleerling://oauth/callback"
-    "&client_id=D50E0C06-32D1-4B41-A137-A9A850C892C2"
+    f"redirect_uri={REDIRECT_URI}"
+    f"&client_id={CLIENT_ID}"
     "&response_type=code"
     "&prompt=login"
     "&scope=openid"
@@ -89,7 +90,7 @@ while True:
 
             payload = {
                 'grant_type': 'authorization_code',
-                'redirect_uri': 'somtodayleerling://oauth/callback',
+                'redirect_uri': REDIRECT_URI,
                 'code_verifier': 't9b9-QCBB3hwdYa3UW2U2c9hhrhNzDdPww8Xp6wETWQ',
                 'code': code,
                 'scope': 'openid',
